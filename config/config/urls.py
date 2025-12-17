@@ -24,14 +24,28 @@ def superuser_only(request):
 
 admin.site.has_permission = superuser_only
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
+# API endpoints (frontend uchun /api/ prefix bilan)
+api_urlpatterns = [
     path('user/', include('kpi_user.urls')),
     path('validator/', include('kpi_validator.urls')),
     path('csrf/', views.csrf_token, name='csrf_token'),
     path('check-auth/', views.check_auth, name='check_auth'),
     path('logout/', views.logout_func, name='logout'),
+    path('', views.login_func, name='login'),  # Login endpoint
+    path('download-report/<int:pk>', views.download_pdf_report, name='download_pdf_report'),
+    path('download-submissions-zip/', views.download_submissions_zip, name='download_submissions_zip'),
+    path('download-submissions-zip/<int:period_id>', views.download_submissions_zip, name='download_submissions_zip_period'),
+]
 
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/', include(api_urlpatterns)),  # Frontend uchun /api/ prefix
+    # Backward compatibility uchun (eski endpoint'lar)
+    path('user/', include('kpi_user.urls')),
+    path('validator/', include('kpi_validator.urls')),
+    path('csrf/', views.csrf_token, name='csrf_token'),
+    path('check-auth/', views.check_auth, name='check_auth'),
+    path('logout/', views.logout_func, name='logout'),
     path('', views.login_func, name='login'),
     path('download-report/<int:pk>', views.download_pdf_report, name='download_pdf_report'),
     path('download-submissions-zip/', views.download_submissions_zip, name='download_submissions_zip'),

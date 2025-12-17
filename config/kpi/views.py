@@ -28,6 +28,32 @@ def download_pdf_report(request, pk=None):
 def login_func(request):
     auth.logout(request)
     url = request.GET.get('next')
+    
+    # Frontend'dan kelgan so'rovlar uchun JSON qaytarish
+    if request.headers.get('Content-Type', '').startswith('application/json') or \
+       request.headers.get('X-Requested-With') == 'XMLHttpRequest' or \
+       'application/json' in request.headers.get('Accept', ''):
+        if request.method == "POST":
+            import json
+            try:
+                data = json.loads(request.body)
+                username = data.get("username")
+                password = data.get("password")
+            except:
+                username = request.POST.get("username")
+                password = request.POST.get("password")
+            
+            user = authenticate(request, username=username, password=password)
+            
+            if user is not None:
+                login(request, user)
+                return JsonResponse({"success": True, "message": "Login muvaffaqiyatli"})
+            else:
+                return JsonResponse({"success": False, "error": "Foydalanuvchi nomi yoki parol noto'g'ri!"}, status=400)
+        else:
+            return JsonResponse({"detail": "ok"})
+    
+    # Oddiy HTML so'rovlar uchun eski logika
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")

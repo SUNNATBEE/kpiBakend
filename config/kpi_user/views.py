@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from datetime import datetime
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.db.models import Sum
 from kpi.models import Criteria, CriteriaItem, Submission, Period, CriteriaType
 
@@ -93,20 +93,47 @@ def save_submission(request):
     if request.method != 'POST':
         raise Http404()
 
-    criteria_item = get_object_or_404(CriteriaItem, id=request.POST.get('c_item', -1))
+    # c_item ni integer'ga convert qilish
+    c_item_id = request.POST.get('c_item')
+    if not c_item_id:
+        return JsonResponse({"success": False, "error": "Kriteriya bandi tanlanishi kerak"}, status=400)
+    
+    try:
+        # Agar string bo'lsa, integer qismini olish (masalan, "1.1" -> 1)
+        if '.' in str(c_item_id):
+            c_item_id = int(float(c_item_id))
+        else:
+            c_item_id = int(c_item_id)
+    except (ValueError, TypeError):
+        return JsonResponse({"success": False, "error": "Noto'g'ri kriteriya ID"}, status=400)
+    
+    criteria_item = get_object_or_404(CriteriaItem, id=c_item_id)
     date = request.POST.get('date')
     description = request.POST.get('description')
     file = request.FILES.get('file')
-    print(request.FILES)
     user = request.user
+    
+    # Date tekshirish
+    if not date:
+        return JsonResponse({"success": False, "error": "Sana kiritilishi kerak"}, status=400)
+    
     obj = Submission()
     obj.user = user
     obj.criteria_item = criteria_item
     obj.request_file = file
     obj.request_description = description
 
-    format_kodi = "%Y-%m-%d"
-    obj.created_day = datetime.strptime(date, format_kodi)
+    try:
+        format_kodi = "%Y-%m-%d"
+        obj.created_day = datetime.strptime(date, format_kodi)
+    except ValueError:
+        return JsonResponse({"success": False, "error": "Noto'g'ri sana formati"}, status=400)
+    
     obj.save()
 
+    # JSON so'rov uchun JSON response
+    if request.headers.get('Content-Type', '').startswith('application/json') or \
+       request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({"success": True, "message": "Dalil muvaffaqiyatli yuklandi"})
+    
     return redirect('submissions_view')

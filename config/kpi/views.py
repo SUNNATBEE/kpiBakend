@@ -2,13 +2,16 @@ from django.shortcuts import render
 from django.contrib import auth
 from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie
+import zipfile
+import os
+from io import BytesIO
 
 from .models import (
-    User
+    User, Submission
 )
 from .utils import generate_report_pdf
 
@@ -60,8 +63,20 @@ def login_func(request):
                 messages.error(request, "Username va password kiritilishi kerak")
                 return render(request, "login.html")
         
-        # Authenticate
+        # Authenticate - username yoki email bilan
+        user = None
+        
+        # Avval username bilan urinib ko'ramiz
         user = authenticate(request, username=username, password=password)
+        
+        # Agar username bilan topilmasa, email bilan urinib ko'ramiz
+        if user is None and '@' in username:
+            try:
+                from .models import User
+                user_obj = User.objects.get(email=username)
+                user = authenticate(request, username=user_obj.username, password=password)
+            except User.DoesNotExist:
+                pass
         
         if user is not None:
             login(request, user)
@@ -83,10 +98,11 @@ def login_func(request):
                 return redirect('kpi_validator_home')
         else:
             # Authentication muvaffaqiyatsiz
+            error_msg = "Foydalanuvchi nomi (yoki email) yoki parol noto'g'ri!"
             if is_json:
-                return JsonResponse({"success": False, "error": "Foydalanuvchi nomi yoki parol noto'g'ri!"}, status=400)
+                return JsonResponse({"success": False, "error": error_msg}, status=400)
             else:
-                messages.error(request, "Foydalanuvchi nomi yoki parol noto'g'ri!")
+                messages.error(request, error_msg)
     
     # GET so'rov uchun
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or \
@@ -118,12 +134,77 @@ def csrf_token(request):
 @ensure_csrf_cookie
 def check_auth(request):
     # Frontend'dan authentication holatini tekshirish uchun endpoint
-    if request.user.is_authenticated:
+    # request.user.is_authenticated Django'ning built-in metodidir
+    if hasattr(request, 'user') and request.user.is_authenticated:
         return JsonResponse({
             "authenticated": True,
             "username": request.user.username,
-            "is_superuser": request.user.is_superuser,
+            "is_superuser": getattr(request.user, 'is_superuser', False),
             "is_manager": getattr(request.user, 'is_manager', False),
         })
     else:
+        # Authenticated emas
         return JsonResponse({"authenticated": False}, status=401)
+
+
+@ensure_csrf_cookie
+def logout_func(request):
+    # Logout endpoint
+    if request.method == "POST":
+        auth.logout(request)
+        # JSON so'rov uchun JSON response
+        if request.headers.get('Content-Type', '').startswith('application/json') or \
+           request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({"success": True, "message": "Logout muvaffaqiyatli"})
+        # HTML so'rov uchun redirect
+        return redirect('login')
+    # GET so'rov uchun ham logout qilish
+    auth.logout(request)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or \
+       'application/json' in request.headers.get('Accept', ''):
+        return JsonResponse({"success": True, "message": "Logout muvaffaqiyatli"})
+    return redirect('login')
+
+
+@login_required(login_url='login')
+def download_submissions_zip(request, period_id=None):
+    """User'ning barcha submission fayllarini zip qilib yuklab olish"""
+    try:
+        user = request.user
+        submissions = Submission.objects.filter(user=user)
+        
+        if period_id:
+            submissions = submissions.filter(period_id=period_id)
+        
+        # Faqat fayli bor submission'larni olish
+        submissions = submissions.exclude(request_file__isnull=True).exclude(request_file='')
+        
+        if not submissions.exists():
+            return JsonResponse({"success": False, "error": "Yuklab olish uchun fayl topilmadi"}, status=404)
+        
+        # Zip fayl yaratish
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for submission in submissions:
+                if submission.request_file:
+                    try:
+                        file_path = submission.request_file.path
+                        if os.path.exists(file_path):
+                            # Fayl nomini yaxshilash
+                            file_name = os.path.basename(submission.request_file.name)
+                            # Submission ID va sana bilan nomlash
+                            safe_name = f"{submission.id}_{submission.created_day}_{file_name}"
+                            zip_file.write(file_path, safe_name)
+                    except Exception as e:
+                        # Agar fayl topilmasa, o'tkazib yuborish
+                        continue
+        
+        zip_buffer.seek(0)
+        
+        response = HttpResponse(zip_buffer, content_type='application/zip')
+        filename = f"submissions_{user.username}_{period_id or 'all'}.zip"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+        
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)

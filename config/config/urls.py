@@ -30,7 +30,10 @@ urlpatterns = [
     path('validator/', include('kpi_validator.urls')),
     path('csrf/', views.csrf_token, name='csrf_token'),
     path('check-auth/', views.check_auth, name='check_auth'),
+    path('logout/', views.logout_func, name='logout'),
 
     path('', views.login_func, name='login'),
     path('download-report/<int:pk>', views.download_pdf_report, name='download_pdf_report'),
+    path('download-submissions-zip/', views.download_submissions_zip, name='download_submissions_zip'),
+    path('download-submissions-zip/<int:period_id>', views.download_submissions_zip, name='download_submissions_zip_period'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

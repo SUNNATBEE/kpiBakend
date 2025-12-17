@@ -24,6 +24,7 @@ def download_pdf_report(request, pk=None):
     return response
 
 
+@ensure_csrf_cookie
 def login_func(request):
     auth.logout(request)
     url = request.GET.get('next')
@@ -47,7 +48,7 @@ def login_func(request):
             else:
                 return redirect('kpi_validator_home')            
         else:
-            messages.error(request, "Foydalanuvchi nomi yoki parol noto‘g‘ri!")
+            messages.error(request, "Foydalanuvchi nomi yoki parol noto'g'ri!")
 
     return render(request, "login.html")
 

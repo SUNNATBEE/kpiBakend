@@ -29,53 +29,70 @@ def login_func(request):
     auth.logout(request)
     url = request.GET.get('next')
     
-    # Frontend'dan kelgan so'rovlar uchun JSON qaytarish
-    if request.headers.get('Content-Type', '').startswith('application/json') or \
-       request.headers.get('X-Requested-With') == 'XMLHttpRequest' or \
-       'application/json' in request.headers.get('Accept', ''):
-        if request.method == "POST":
+    if request.method == "POST":
+        # JSON so'rovni tekshirish
+        content_type = request.headers.get('Content-Type', '')
+        is_json = content_type.startswith('application/json') or \
+                  request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        
+        username = None
+        password = None
+        
+        if is_json:
+            # JSON so'rov
             import json
             try:
                 data = json.loads(request.body)
                 username = data.get("username")
                 password = data.get("password")
-            except:
-                username = request.POST.get("username")
-                password = request.POST.get("password")
-            
-            user = authenticate(request, username=username, password=password)
-            
-            if user is not None:
-                login(request, user)
-                return JsonResponse({"success": True, "message": "Login muvaffaqiyatli"})
-            else:
-                return JsonResponse({"success": False, "error": "Foydalanuvchi nomi yoki parol noto'g'ri!"}, status=400)
+            except json.JSONDecodeError:
+                return JsonResponse({"success": False, "error": "Noto'g'ri JSON format"}, status=400)
         else:
-            return JsonResponse({"detail": "ok"})
-    
-    # Oddiy HTML so'rovlar uchun eski logika
-    if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-
+            # Form data so'rov
+            username = request.POST.get("username")
+            password = request.POST.get("password")
+        
+        # Username va password tekshirish
+        if not username or not password:
+            if is_json:
+                return JsonResponse({"success": False, "error": "Username va password kiritilishi kerak"}, status=400)
+            else:
+                messages.error(request, "Username va password kiritilishi kerak")
+                return render(request, "login.html")
+        
         # Authenticate
         user = authenticate(request, username=username, password=password)
-
+        
         if user is not None:
             login(request, user)
+            
+            # JSON so'rov uchun JSON response
+            if is_json:
+                return JsonResponse({"success": True, "message": "Login muvaffaqiyatli"})
+            
+            # HTML so'rov uchun redirect
             if url:
                 return redirect(url)
             if user.is_superuser == True:
                 return redirect('admin:index')
-            elif not ( user.is_active):
+            elif not user.is_active:
                 messages.error(request, "Siz tizimga kira olmaysiz. Adminlar bilan bog'laning")
             elif user.is_manager == False:
                 return redirect('kpi_user_home')
             else:
-                return redirect('kpi_validator_home')            
+                return redirect('kpi_validator_home')
         else:
-            messages.error(request, "Foydalanuvchi nomi yoki parol noto'g'ri!")
-
+            # Authentication muvaffaqiyatsiz
+            if is_json:
+                return JsonResponse({"success": False, "error": "Foydalanuvchi nomi yoki parol noto'g'ri!"}, status=400)
+            else:
+                messages.error(request, "Foydalanuvchi nomi yoki parol noto'g'ri!")
+    
+    # GET so'rov uchun
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or \
+       'application/json' in request.headers.get('Accept', ''):
+        return JsonResponse({"detail": "ok"})
+    
     return render(request, "login.html")
 
 

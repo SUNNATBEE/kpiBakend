@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Dashboard</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Bootstrap 4 -->
+    <link 
+        rel="stylesheet" 
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <style>
+        body {
+            background: #f4f7fb;
+        }
+
+        /* MAIN CONTENT */
+        .main {
+            margin-left: 0;
+            padding-top: 70px;
+            padding-bottom: 70px;
+        }
+
+        .header {
+            height: 70px;
+            background: linear-gradient(to right, #5a9bff, #6ad2ff);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            right: 0;
+            z-index: 100;
+            padding: 0 25px;
+        }
+
+
+        /* FOOTER */
+        footer {
+            background: #ffffff;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 55px;
+            border-top: 1px solid #e5e5e5;
+            display: flex;
+            align-items: center;
+            padding: 0 25px;
+            font-size: 14px;
+            color: #666;
+        }
+        /* FILTER PANEL WRAPPER */
+.filter-box {
+    border-right: 4px solid #3b7bff;
+    /* border-radius: 10px; */
+    /* padding: 15px 20px; */
+    /* background: #ffffff; */
+    border: none;
+}
+
+/* FILTER TITLE */
+.filter-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #555;
+}
+
+/* FILTER ROW */
+.filter-row {
+    gap: 10px;
+}
+
+/* SELECT STYLE */
+.filter-select {
+    max-width: 250px;
+    border-radius: 8px;
+    height: 38px;
+}
+
+/* BUTTON STYLE */
+.filter-btn {
+    height: 38px;
+    border-radius: 8px;
+    padding: 0 20px;
+    font-size: 14px;
+}
+
+/* RESPONSIVE: MOBILE TUGmalar pastma-past chiqsin */
+@media(max-width: 576px) {
+    .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .filter-btn {
+        margin-left: 0 !important;
+        margin-top: 8px;
+    }
+}
+
+/* TABLE WRAPPER */
+.modern-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 6px;
+}
+
+/* TABLE HEADER */
+.modern-table thead tr {
+    background: #e8f1ff;
+    color: #2c4b85;
+    font-weight: 600;
+}
+
+.modern-table thead th {
+    border: none;
+    padding: 10px;
+    font-size: 13px;
+}
+
+/* TABLE BODY ROW */
+.modern-table tbody tr {
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* TABLE CELLS */
+.modern-table td {
+    padding: 8px 10px;
+    font-size: 13px;
+    color: #333;
+    vertical-align: middle;
+    border-top: none;
+}
+
+/* RADIUS ON THE ROWS */
+.modern-table tbody tr td:first-child {
+    border-radius: 8px 0 0 8px;
+}
+
+.modern-table tbody tr td:last-child {
+    border-radius: 0 8px 8px 0;
+}
+
+/* HOVER EFFECT */
+.modern-table tbody tr:hover {
+    background: #f5faff;
+}
+
+/* MOBILE RESPONSIVE */
+@media(max-width: 576px) {
+    .modern-table thead {
+        display: none;
+    }
+
+    .modern-table tbody tr {
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    .modern-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px;
+    }
+
+    .modern-table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        margin-right: 10px;
+        color: #5272c7;
+    }
+}
+
+.tooltip-container {
+            position: relative; /* Bu juda muhim! Kichik oyna unga nisbatan joylashadi */
+            display: inline-block;
+            cursor: pointer;
+            padding: 0px; /* Yaqinlashtirish maydonini kattaroq qilish uchun */
+        }
+
+        /* 2. Ikonka stili */
+        .info-icon {
+            font-size: 15px;
+            color: #ffc107; /* Sariq/ogohlantiruvchi rang */
+            border: 2px solid #ffc107;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s;
+        }
+
+        .tooltip-container:hover .info-icon {
+            color: #e0b406; /* Hover bo'lganda rang o'zgarishi */
+        }
+
+        /* 3. Kichik Oyna (Tooltip) stili */
+        .tooltip-box {
+            visibility: hidden; /* Dastlab ko'rinmaydi */
+            opacity: 0; /* Dastlab shaffof emas */
+            width: 200px; /* Oynaning kengligi */
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            position: absolute;
+            z-index: 10;
+            bottom: 125%; /* Ikonkadan yuqorida joylashtirish (100% balandlik) */
+            left: 50%;
+            transform: translateX(-50%) translateY(10px); /* Markazga joylash va pastga ozgina surish */
+            
+            /* Silliq o'tish (animatsiya) */
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        /* 4. Tooltip uchburchagi (o'q) */
+        .tooltip-box::after {
+            content: "";
+            position: absolute;
+            top: 100%; /* Tooltipning pastki qismida */
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent; /* Tepaga qaraydigan uchburchak */
+        }
+
+        /* 5. Tooltipning Ko'rinishi (Hover effekti) */
+        .tooltip-container:hover .tooltip-box {
+            visibility: visible;
+            opacity: 1; /* Shaffoflikni oshirish */
+            transform: translateX(-50%) translateY(0); /* Yuqoriga ko'tarish */
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+<div class="header d-flex align-items-center justify-content-between">
+    
+    <!-- LEFT: MENU + SEARCH -->
+    <div class="d-flex align-items-center">
+        <h2 style="font-family: Georgia, 'Times New Roman', Times, serif;">KPI - Aloqa</h2>
+    </div>
+
+    <!-- RIGHT: MENU ITEMS -->
+    <div class="d-flex align-items-center">
+        <!-- ICON NAV -->
+        <div class="d-flex align-items-center mr-4">
+            <a href="{% url 'kpi_validator_home' %}?all=1" class="text-white mr-4" style="font-size:15px;">Barcha arizalar</a>
+            <a href="{% url 'kpi_validator_home' %}" class="text-white mr-4" style="font-size:15px;">Ko'rilmagan arizalar</a>
+        </div>
+
+        <div class="dropdown mr-4">
+            <a 
+                class="btn btn-warning btn-sm " 
+                href="{% url 'login' %}">
+                Shaxsiy kabinetdan chiqish
+            </a>
+        </div>
+
+        <!-- USER -->
+        <div class="d-flex align-items-center">
+            <img 
+                src="{{ user.image.url }}" 
+                class="rounded-circle mr-2"
+                width="40"
+                height="40">
+            <div style="font-size:14px; line-height:1;">
+                <div><b>{{ user }}</b></div>
+                <span style="font-size:12px;"> 
+                    
+                </span>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+    <!-- MAIN CONTENT -->
+    {% block main_content %}{% endblock main_content %}
+    
+    <!-- FOOTER -->
+    <footer>
+        Ushbu sayt 2025-yil Oromov Akobir Asliddinovich tomonidan ishlab chiqildi. &copy Oromov A.
+    </footer>
+
+     <!-- MODAL -->
+    <div class="modal  fade" id="myModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <form class="modal-content" action="{% url 'save_submission' %}" method="POST">
+
+            <!-- HEADER -->
+            <div class="modal-header">
+                <h5 class="modal-title" style="text-align: center;">Ariza yuborish uchun quyidagi maydonlarni to'ldiring.</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                <span>&times;</span>
+                </button>
+            </div>
+
+            <!-- BODY -->
+            <div class="modal-body">
+                <div>
+
+                <div class="form-group">
+                    <label>Qanday ish qildingiz ?</label>
+                    <select class="form-control filter-select" name="c_item" required>
+                        {% for p in criteria_items %}
+                            <option value="{{ p.id }}">
+                                {{ p.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Qaysi sanada amalga oshirildi.</label>
+                    <input type="date" name="date" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Izoh</label>
+                    <textarea name="description" class="form-control" rows="4"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Dalil sifatida fayl yuklashingiz ham mumkin</label>
+                    <input type="file" name="file" class="form-control">
+                </div>
+                {% csrf_token %}
+
+            </div>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                Close
+                </button>
+                <button type="submit" class="btn btn-primary">
+                Save
+                </button>
+            </div>
+
+        </form>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

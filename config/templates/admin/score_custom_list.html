@@ -1,0 +1,54 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+
+<div class="app-dashboard">
+
+<h1 style="margin-bottom: 20px;">Ballar</h1>
+
+<form method="GET" style="margin-bottom:20px; background:#f8f8f8; padding:15px; border:1px solid #ddd; border-radius:6px;">
+    <fieldset class="module aligned">
+        <div class="form-row">
+            <label style="margin-right:10px;">Period:</label>
+            <select name="period" class="vSelectSelect">
+                <option value="">— Tanlanmagan (Hozirgi) —</option>
+                {% for p in periods %}
+                    <option value="{{ p.id }}" {% if selected_period.id == p.id %}selected{% endif %}>
+                        {{ p.name }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" class="default" style="margin-left:10px;">Qidirish</button>
+        </div>
+    </fieldset>
+</form>
+
+<table class="table table-striped" style="width:100%;">
+    <thead>
+        <tr>
+            <th style="width:80px;">Punkt</th>
+            <th>Nomi</th>
+            <th style="width:120px;">Olingan ball</th>
+            <th style="width:140px;">Maksimal ball</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for item in criteria_list %}
+            <tr>
+                <td>
+                    <a href="{% url 'criteria_detail' item.id %}">
+                        {{ item.criteria_num }}
+                    </a>
+                </td>
+                <td>{{ item.criteria_name }}</td>
+                <td>{{ item.score }}</td>
+                <td>{{ item.max }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+</div>
+{% endblock %}

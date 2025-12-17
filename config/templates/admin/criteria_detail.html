@@ -1,0 +1,52 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+
+<h1 style="margin-bottom: 20px;">
+    {{ criteria.item_num }} - {{ criteria.description }}
+</h1>
+
+<form method="GET" class="module" style="padding: 15px; margin-bottom: 20px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <label><strong>Period:</strong></label>
+        <select name="period" style="min-width:200px;">
+            {% for p in periods %}
+                <option value="{{ p.id }}" {% if selected_period and selected_period.id == p.id %}selected{% endif %}>
+                    {{ p.name }}
+                </option>
+            {% endfor %}
+        </select>
+    <button type="submit" class="button">Qidirish</button>
+</div>
+</form>
+
+<div class="results">
+    <table id="result_list" class="table table-striped" style="width:100%;">
+        <thead>
+            <tr>
+                <th style="width:70%;">Kichik punkt</th>
+                <th style="width:5%; text-align:center;">Olingan ball</th>
+                <th style="width:5%; text-align:center;">Maksimal ball</th>
+                <th></th>
+            </tr>
+        </thead>
+
+    <tbody>
+        {% for item in item_list %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td style="text-align:center;">{{ item.score }}</td>
+                <td style="text-align:center;">{{ item.max }}</td>
+                <td style="text-align:center;">
+                    <a class="button default"
+                        href="{% url 'kpi_user:kpi_submission_add' %}?criteria_item={{ item.id }}&period={{ selected_period.id }}">
+                            Yangi ma'lumotnoma
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+</div>
+{% endblock %}

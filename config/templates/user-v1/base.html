@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Dashboard</title>
+
+    <!-- Bootstrap 4 -->
+    <link 
+        rel="stylesheet" 
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <style>
+        body {
+            background: #f4f7fb;
+        }
+
+        /* MAIN CONTENT */
+        .main {
+            margin-left: 0;
+            padding-top: 70px;
+            padding-bottom: 70px;
+        }
+
+        .header {
+            height: 70px;
+            background: linear-gradient(to right, #5a9bff, #6ad2ff);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            right: 0;
+            z-index: 100;
+            padding: 0 25px;
+        }
+
+
+        /* FOOTER */
+        footer {
+            background: #ffffff;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 55px;
+            border-top: 1px solid #e5e5e5;
+            display: flex;
+            align-items: center;
+            padding: 0 25px;
+            font-size: 14px;
+            color: #666;
+        }
+        /* FILTER PANEL WRAPPER */
+.filter-box {
+    border-right: 4px solid #3b7bff;
+    /* border-radius: 10px; */
+    /* padding: 15px 20px; */
+    /* background: #ffffff; */
+    border: none;
+}
+
+/* FILTER TITLE */
+.filter-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #555;
+}
+
+/* FILTER ROW */
+.filter-row {
+    gap: 10px;
+}
+
+/* SELECT STYLE */
+.filter-select {
+    max-width: 250px;
+    border-radius: 8px;
+    height: 38px;
+}
+
+/* BUTTON STYLE */
+.filter-btn {
+    height: 38px;
+    border-radius: 8px;
+    padding: 0 20px;
+    font-size: 14px;
+}
+
+/* RESPONSIVE: MOBILE TUGmalar pastma-past chiqsin */
+@media(max-width: 576px) {
+    .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .filter-btn {
+        margin-left: 0 !important;
+        margin-top: 8px;
+    }
+}
+
+/* TABLE WRAPPER */
+.modern-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 6px;
+}
+
+/* TABLE HEADER */
+.modern-table thead tr {
+    background: #e8f1ff;
+    color: #2c4b85;
+    font-weight: 600;
+}
+
+.modern-table thead th {
+    border: none;
+    padding: 10px;
+    font-size: 13px;
+}
+
+/* TABLE BODY ROW */
+.modern-table tbody tr {
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* TABLE CELLS */
+.modern-table td {
+    padding: 8px 10px;
+    font-size: 13px;
+    color: #333;
+    vertical-align: middle;
+    border-top: none;
+}
+
+/* RADIUS ON THE ROWS */
+.modern-table tbody tr td:first-child {
+    border-radius: 8px 0 0 8px;
+}
+
+.modern-table tbody tr td:last-child {
+    border-radius: 0 8px 8px 0;
+}
+
+/* HOVER EFFECT */
+.modern-table tbody tr:hover {
+    background: #f5faff;
+}
+
+/* MOBILE RESPONSIVE */
+@media(max-width: 576px) {
+    .modern-table thead {
+        display: none;
+    }
+
+    .modern-table tbody tr {
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    .modern-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px;
+    }
+
+    .modern-table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        margin-right: 10px;
+        color: #5272c7;
+    }
+}
+
+
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+<div class="header d-flex align-items-center justify-content-between">
+    
+    <!-- LEFT: MENU + SEARCH -->
+    <div class="d-flex align-items-center">
+        <h2 style="font-family: Georgia, 'Times New Roman', Times, serif;">KPI - Aloqa</h2>
+    </div>
+
+    <!-- RIGHT: MENU ITEMS -->
+    <div class="d-flex align-items-center">
+        <!-- ICON NAV -->
+        <div class="d-flex align-items-center mr-4">
+            <a href="#" class="text-white mr-4" style="font-size:15px;">Arizalarim</a>
+            <a href="#" class="text-white mr-4" style="font-size:15px;">Statistika</a>
+        </div>
+
+        <!-- BLUE DROPDOWN BUTTON -->
+        <div class="dropdown mr-4">
+            <button 
+                class="btn btn-warning btn-sm mr-3" 
+                data-toggle="modal" 
+                data-target="#myModal">
+                Yangi ariza yuborish
+            </button>
+
+        </div>
+
+        <!-- USER -->
+        <div class="d-flex align-items-center">
+            <img 
+                src="{{ user.image.url }}" 
+                class="rounded-circle mr-2"
+                width="40"
+                height="40">
+            <div style="font-size:14px; line-height:1;">
+                <div><b>{{ user }}</b></div>
+                <span style="font-size:12px;">Professor / o'qituvchi</span>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+    <!-- MAIN CONTENT -->
+<div class="main container-fluid">
+
+    <!-- FILTER PANEL -->
+    <!-- FILTER PANEL -->
+<div class="filter-box card mb-4 p-3" style="align-items: end; background: transparent;">
+    <div>
+        <div class="filter-title">Kategoriyani tanlang</div>
+
+    <div class="d-flex align-items-center filter-row">
+
+        <select class="form-control filter-select">
+            <option value="">Barchasi</option>
+            <option value="1">Tur 1</option>
+            <option value="2">Tur 2</option>
+            <option value="3">Tur 3</option>
+        </select>
+
+        <button class="btn btn-primary filter-btn ml-2">
+            Qidirish
+        </button>
+
+    </div>
+    </div>
+</div>
+
+
+    <!-- DATA TABLE CARD -->
+    <div class="card p-3">
+        <h5 class="mb-3">Database Result</h5>
+
+        <table class="table modern-table mt-3">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nomi</th>
+            <th>Sana</th>
+            <th>Status</th>
+            <th>Miqdori</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td></td><td></td>
+            <td style="text-align: center; font-size: 16px; font-style: italic;">Lorem ipsum dolor sit amet.</td>
+            <td></td><td></td>
+        </tr>
+        <tr>
+            <td>001</td>
+            <td>John Doe</td>
+            <td>2025-01-17</td>
+            <td>Active</td>
+            <td>$120</td>
+        </tr>
+        <tr>
+            <td>001</td>
+            <td>John Doe</td>
+            <td>2025-01-17</td>
+            <td>Active</td>
+            <td>$120</td>
+        </tr>
+        <tr>
+            <td>001</td>
+            <td>John Doe</td>
+            <td>2025-01-17</td>
+            <td>Active</td>
+            <td>$120</td>
+        </tr>
+        <tr>
+            <td>001</td>
+            <td>John Doe</td>
+            <td>2025-01-17</td>
+            <td>Active</td>
+            <td>$120</td>
+        </tr>
+        <tr><td></td><td></td>
+            <td style="text-align: center; font-size: 16px; font-style: italic;">Lorem ipsum dolor sit amet.</td>
+            <td></td><td></td>
+        </tr>
+        <tr>
+            <td>002</td>
+            <td>Jane Smith</td>
+            <td>2025-01-24</td>
+            <td>Pending</td>
+            <td>$90</td>
+        </tr>
+    </tbody>
+</table>
+
+    </div>
+
+</div>
+
+
+    <!-- FOOTER -->
+    <footer>
+        Footer Link 1 &nbsp; | &nbsp; Footer Link 2
+    </footer>
+
+     <!-- MODAL -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+
+        <!-- HEADER -->
+        <div class="modal-header">
+            <h5 class="modal-title">Form Input</h5>
+            <button type="button" class="close" data-dismiss="modal">
+            <span>&times;</span>
+            </button>
+        </div>
+
+        <!-- BODY -->
+        <div class="modal-body">
+            <form>
+
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label>Message</label>
+                <textarea class="form-control" rows="4"></textarea>
+            </div>
+
+            </form>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            Close
+            </button>
+            <button type="button" class="btn btn-primary">
+            Save
+            </button>
+        </div>
+
+        </div>
+    </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

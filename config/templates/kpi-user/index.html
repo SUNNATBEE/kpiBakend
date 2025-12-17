@@ -1,0 +1,94 @@
+{% extends "kpi-user/base.html" %}
+
+
+{% block main_content %}
+<div class="main container-fluid">
+
+    <!-- FILTER PANEL -->
+    <!-- FILTER PANEL -->
+<div class="filter-box card mb-4 p-3" style="align-items: end; background: transparent;">
+    <div>
+        <div class="filter-title">Davrni tanlang</div>
+
+        <form class="d-flex align-items-center filter-row" action="{% url 'kpi_user_home' %}">
+
+            <select class="form-control filter-select" name="period">
+                <option value="">— Tanlanmagan (Hozirgi) —</option>
+                {% for p in periods %}
+                    <option value="{{ p.id }}" {% if selected_period.id == p.id %}selected{% endif %}>
+                        {{ p.name }}
+                    </option>
+                {% endfor %}
+            </select>
+            <button class="btn btn-primary filter-btn ml-2" type="submit">
+                Qidirish
+            </button>
+
+        </form>
+    </div>
+</div>
+
+
+    <!-- DATA TABLE CARD -->
+    <div class="card p-3">
+        <h5 style="text-align: center;" class="mb-3">Kriteriyalar va ulardan olingan ballar</h5> 
+        <p style="font-style: italic !important;">Shu davr hisobi: {{full_score}} / 100</p>
+        <table class="table modern-table mt-3">
+    <thead>
+        <tr>
+            <th>Punkt</th>
+            <th>Izoh</th>
+            <th>To'liq izoh</th>
+            <th>Natijalarni hisobga olish muddati</th>
+            <th>Ball hisobi</th>
+            <th>Masul shaxs</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for type in criteria_type_list %}
+            <tr><td></td><td></td><td></td>
+                <td style="text-align: center; font-size: 16px; font-style: italic;"><span style="font-weight: 500;">{{ forloop.counter }}.</span> {{ type.c_type_name }} (ball {{ type.score }} / {{ type.c_type_max_score }})</td>
+                <td></td><td></td>
+            </tr>
+            {% for item in type.data %}
+                <tr>
+                    <td>{{ item.criteria_num }}</td>
+                    <td>
+                        <div class="tooltip-container">
+                            <div class="info-icon">
+                                <i class="fas fa-exclamation"></i>
+                            </div>
+                            
+                            <div class="tooltip-box">
+                                {{ item.desc }}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="tooltip-container">
+                            <div class="info-icon">
+                                <i class="fas fa-exclamation"></i>
+                            </div>
+                            
+                            <div class="tooltip-box">
+                                {{ item.obj.full_description }}
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ item.obj.duration_type }}</td>
+                    <td>{{ item.score }} / {{ item.obj.max_score }}</td>
+                    <td>{{ item.obj.validator }}</td>
+                </tr>
+            {% endfor %}
+        {% endfor %}
+
+        
+    </tbody>
+</table>
+
+    </div>
+
+</div>
+
+
+{% endblock main_content %}

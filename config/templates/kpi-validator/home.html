@@ -1,0 +1,213 @@
+{% extends 'kpi-validator/base.html' %}
+
+
+{% block main_content %}
+<div class="main container-fluid">
+
+    <!-- FILTER PANEL -->
+    <!-- FILTER PANEL -->
+<div class="filter-box card mb-4 p-3" style="align-items: end; background: transparent;">
+    <div>
+        <div class="filter-title">Davrni tanlang</div>
+
+        <form class="d-flex align-items-center filter-row" action="{% url 'kpi_validator_home' %}">
+            <input type="hidden" name="all" value="{{all}}">
+            <select class="form-control filter-select" name="period">
+                <option value="">— Tanlanmagan (Hozirgi) —</option>
+                {% for p in periods %}
+                    <option value="{{ p.id }}" {% if selected_period.id == p.id %}selected{% endif %}>
+                        {{ p.name }}
+                    </option>
+                {% endfor %}
+            </select>
+            <button class="btn btn-primary filter-btn ml-2" type="submit">
+                Qidirish
+            </button>
+
+        </form>
+    </div>
+</div>
+
+
+    <!-- DATA TABLE CARD -->
+    <div class="card p-3">
+        <h5 style="text-align: center;" class="mb-3">Arizalar</h5> 
+        <p style="font-style: italic !important;"></p>
+        <table class="table modern-table mt-3">
+    <thead>
+        <tr>
+            <th></th>
+            <th>Punkt</th>
+            <th>Pedagog</th>
+            <th>Sana</th>
+            <th>Izoh</th>
+            <th>Fayl</th>
+            <th>Holati</th>
+            <th>Nomi</th>
+            <th>Ball</th>
+            <th>Izohingiz</th>
+            <th style="width: 250px !important;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in criteri_items %}
+            <tr>
+                <td>{{forloop.counter}}</td>
+                <td>{{ item.criteria_item.criteria.item_num }}</td>
+                <td>{{ item.user }}</td>
+                <td>{{item.created_day}}</td>
+                <td>
+                    <div class="tooltip-container">
+                        <div class="info-icon">
+                            <i class="fas fa-exclamation"></i>
+                        </div>
+                        
+                        <div class="tooltip-box">
+                            {{ item.request_description }}
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    {% if item.request_file %}
+                        <a href="{{ item.request_file.url }}" class="btn btn-primary btn-sm" download>Faylni yuklab olish</a>
+                    {% endif %}
+                </td>
+                <td>
+                    <p class="{% if item.status == 'Kutilmoqda' %}text-primary{% elif item.status == 'Ma\'qullandi' %}text-success{% else %}text-danger{% endif %}">{{ item.status }}</p>
+                </td>
+                <td>{{ item.criteria_item.name }}</td>
+                <td>{{ item.score }} / {{ item.criteria_item.max_score }}</td>
+                <td>
+                    <div class="tooltip-container">
+                        <div class="info-icon">
+                            <i class="fas fa-exclamation"></i>
+                        </div>
+                        
+                        <div class="tooltip-box">
+                            {{ item.comment }}
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    {% if item.status == "Kutilmoqda" %}
+                    <div>
+                        <button 
+                            class="btn btn-danger btn-sm" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#denied_modal"
+                            onclick="setFormAction({{item.id}})">
+                            Rad etish
+                        </button>
+
+                        <button 
+                            class="btn btn-success btn-sm" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#access_modal"
+                            onclick="setFormAction({{item.id}})">
+                            Tasdiqlash
+                        </button>
+                    </div>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+
+        
+    </tbody>
+</table>
+    </div>
+</div>
+
+
+<div class="modal fade" id="denied_modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      
+      <!-- Modal header -->
+      <div class="modal-header">
+        <h5 class="modal-title">Siz arizani rad etyapsiz!</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- Modal body -->
+      <form id="actionForm" method="post" action="{% url 'access_denied' %}">
+          <div class="modal-body">
+
+              <!-- Hidden input qiymati avtomatik yoziladi -->
+              <input type="hidden" name="result" id="resultInput1">
+                <input type="hidden" name="status" value="-1">
+
+              <div class="mb-3">
+                  <label class="form-label">Sababini shu joyda yozishingiz mumkin !</label>
+                  <textarea class="form-control" name="comment" placeholder="Izoh kiriting..."></textarea>
+              </div>
+
+          </div>
+        
+          {% csrf_token %}
+          <!-- Modal footer -->
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Yuborish</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+          </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- Tasdiqlash -->
+<div class="modal fade" id="access_modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      
+      <!-- Modal header -->
+      <div class="modal-header">
+        <h5 class="modal-title">Arizani tasdiqlash</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- Modal body -->
+      <form id="actionForm" method="post" action="{% url 'access_denied' %}">
+          <div class="modal-body">
+
+              <!-- Hidden input qiymati avtomatik yoziladi -->
+              <input type="hidden" name="result" id="resultInput2">
+                <input type="hidden" name="status" value="0">
+                
+                <div class="mb-3">
+                    <label class="form-label">Ball</label>
+                    <input class="form-control" type="number" name="ball" id="" required>
+                </div>
+              <div class="mb-3">
+                  <label class="form-label">Baho bo'yicha izoh yozishingiz mumkin.</label>
+                  <textarea class="form-control" name="comment" placeholder="Izoh kiriting..."></textarea>
+              </div>
+
+          </div>
+        
+          {% csrf_token %}
+          <!-- Modal footer -->
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Yuborish</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+          </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+<!-- Bootstrap JS -->
+<script 
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+</script>
+
+<script>
+    // Bu funksiya qaysi tugma bosilganini hidden inputga yozadi
+    function setFormAction(value) {
+        document.getElementById('resultInput1').value = value;
+        document.getElementById('resultInput2').value = value;
+    }
+</script>
+{% endblock main_content %}

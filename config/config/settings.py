@@ -203,6 +203,9 @@ CORS_ALLOW_HEADERS = [
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
+# Cross-origin cookie'lar uchun (Vercel frontend + Render backend)
+SESSION_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
+CSRF_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
 
 ENABLE_SSL_REDIRECT = os.environ.get('ENABLE_SSL_REDIRECT', 'False') == 'True'
 if ENABLE_SSL_REDIRECT:

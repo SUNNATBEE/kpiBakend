@@ -5,7 +5,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
+from django.views.decorators.http import require_http_methods
 import zipfile
 import os
 from io import BytesIO
@@ -29,39 +30,52 @@ def download_pdf_report(request, pk=None):
 
 @ensure_csrf_cookie
 def login_func(request):
+    # GET so'rov uchun avval tekshirish
+    if request.method == "GET":
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or \
+           'application/json' in request.headers.get('Accept', ''):
+            return JsonResponse({"detail": "ok"})
+        return render(request, "login.html")
+    
+    # POST so'rov
     auth.logout(request)
     url = request.GET.get('next')
     
-    if request.method == "POST":
-        # JSON so'rovni tekshirish
-        content_type = request.headers.get('Content-Type', '')
-        is_json = content_type.startswith('application/json') or \
-                  request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-        
-        username = None
-        password = None
-        
+    # JSON so'rovni tekshirish
+    content_type = request.headers.get('Content-Type', '')
+    is_json = content_type.startswith('application/json') or \
+              request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
+    username = None
+    password = None
+    
+    if is_json:
+        # JSON so'rov
+        import json
+        try:
+            data = json.loads(request.body)
+            username = data.get("username")
+            password = data.get("password")
+        except json.JSONDecodeError as e:
+            return JsonResponse({
+                "success": False, 
+                "error": f"Noto'g'ri JSON format: {str(e)}"
+            }, status=400)
+    else:
+        # Form data so'rov
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+    
+    # Username va password tekshirish
+    if not username or not password:
         if is_json:
-            # JSON so'rov
-            import json
-            try:
-                data = json.loads(request.body)
-                username = data.get("username")
-                password = data.get("password")
-            except json.JSONDecodeError:
-                return JsonResponse({"success": False, "error": "Noto'g'ri JSON format"}, status=400)
+            return JsonResponse({
+                "success": False, 
+                "error": "Username va password kiritilishi kerak"
+            }, status=400)
         else:
-            # Form data so'rov
-            username = request.POST.get("username")
-            password = request.POST.get("password")
-        
-        # Username va password tekshirish
-        if not username or not password:
-            if is_json:
-                return JsonResponse({"success": False, "error": "Username va password kiritilishi kerak"}, status=400)
-            else:
-                messages.error(request, "Username va password kiritilishi kerak")
-                return render(request, "login.html")
+            messages.error(request, "Username va password kiritilishi kerak")
+            return render(request, "login.html")
         
         # Authenticate - username yoki email bilan
         user = None
@@ -108,11 +122,7 @@ def login_func(request):
             else:
                 messages.error(request, error_msg)
     
-    # GET so'rov uchun
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or \
-       'application/json' in request.headers.get('Accept', ''):
-        return JsonResponse({"detail": "ok"})
-    
+    # Bu yerda kelmasligi kerak, chunki yuqorida GET so'rov handle qilindi
     return render(request, "login.html")
 
 

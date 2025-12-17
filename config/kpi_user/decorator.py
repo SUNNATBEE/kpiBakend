@@ -17,14 +17,18 @@ def custom_login_required(view_func):
             return view_func(request, *args, **kwargs)
         else:
             # Autentifikatsiya qilinmagan
-            # JSON/API so'rovlar uchun 403 qaytarish
-            is_json = (
+            # API so'rovlar uchun 403 qaytarish (JSON, FormData, yoki AJAX)
+            is_api_request = (
                 request.headers.get('Content-Type', '').startswith('application/json') or
+                request.headers.get('Content-Type', '').startswith('multipart/form-data') or
                 request.headers.get('X-Requested-With') == 'XMLHttpRequest' or
-                'application/json' in request.headers.get('Accept', '')
+                'application/json' in request.headers.get('Accept', '') or
+                request.path.startswith('/api/') or
+                request.path.startswith('/user/') or
+                request.path.startswith('/validator/')
             )
             
-            if is_json:
+            if is_api_request:
                 return JsonResponse(
                     {"error": "Avval tizimga kiring (login) keyin dalil yuklang."},
                     status=403
@@ -42,14 +46,18 @@ def custom_login_required_validator(view_func):
         if request.user.is_authenticated and request.user.is_manager == True:
             return view_func(request, *args, **kwargs)
         else:
-            # JSON/API so'rovlar uchun 403 qaytarish
-            is_json = (
+            # API so'rovlar uchun 403 qaytarish (JSON, FormData, yoki AJAX)
+            is_api_request = (
                 request.headers.get('Content-Type', '').startswith('application/json') or
+                request.headers.get('Content-Type', '').startswith('multipart/form-data') or
                 request.headers.get('X-Requested-With') == 'XMLHttpRequest' or
-                'application/json' in request.headers.get('Accept', '')
+                'application/json' in request.headers.get('Accept', '') or
+                request.path.startswith('/api/') or
+                request.path.startswith('/user/') or
+                request.path.startswith('/validator/')
             )
             
-            if is_json:
+            if is_api_request:
                 return JsonResponse(
                     {"error": "Avval tizimga kiring (login) keyin davom eting."},
                     status=403

@@ -83,7 +83,11 @@ def login_func(request):
             
             # JSON so'rov uchun JSON response
             if is_json:
-                return JsonResponse({"success": True, "message": "Login muvaffaqiyatli"})
+                response = JsonResponse({"success": True, "message": "Login muvaffaqiyatli"})
+                # Cookie'lar to'g'ri saqlanishini ta'minlash
+                # Django login() funksiyasi allaqachon session cookie'ni o'rnatadi
+                # Lekin CORS uchun qo'shimcha sozlamalar kerak bo'lishi mumkin
+                return response
             
             # HTML so'rov uchun redirect
             if url:

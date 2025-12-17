@@ -29,6 +29,7 @@ urlpatterns = [
     path('user/', include('kpi_user.urls')),
     path('validator/', include('kpi_validator.urls')),
     path('csrf/', views.csrf_token, name='csrf_token'),
+    path('check-auth/', views.check_auth, name='check_auth'),
 
     path('', views.login_func, name='login'),
     path('download-report/<int:pk>', views.download_pdf_report, name='download_pdf_report'),

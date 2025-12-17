@@ -83,3 +83,17 @@ def login_func(request):
 def csrf_token(request):
     # Foydalanuvchilarga CSRF cookie tarqatish uchun oddiy endpoint
     return JsonResponse({"detail": "ok"})
+
+
+@ensure_csrf_cookie
+def check_auth(request):
+    # Frontend'dan authentication holatini tekshirish uchun endpoint
+    if request.user.is_authenticated:
+        return JsonResponse({
+            "authenticated": True,
+            "username": request.user.username,
+            "is_superuser": request.user.is_superuser,
+            "is_manager": getattr(request.user, 'is_manager', False),
+        })
+    else:
+        return JsonResponse({"authenticated": False}, status=401)

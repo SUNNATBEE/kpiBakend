@@ -82,7 +82,20 @@ def login_func(request):
 @ensure_csrf_cookie
 def csrf_token(request):
     # Foydalanuvchilarga CSRF cookie tarqatish uchun oddiy endpoint
-    return JsonResponse({"detail": "ok"})
+    # CSRF token'ni response'da ham qaytarish
+    from django.middleware.csrf import get_token
+    token = get_token(request)
+    response = JsonResponse({"detail": "ok", "csrf_token": token})
+    # Cookie'ni to'g'ri sozlash
+    response.set_cookie(
+        'csrftoken',
+        token,
+        max_age=60 * 60 * 24 * 7,  # 7 kun
+        httponly=False,  # JavaScript o'qishi uchun
+        samesite='None',
+        secure=True,
+    )
+    return response
 
 
 @ensure_csrf_cookie

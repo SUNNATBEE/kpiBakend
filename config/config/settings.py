@@ -42,6 +42,7 @@ if RENDER_HOST and RENDER_HOST not in ALLOWED_HOSTS:
 CSRF_TRUSTED_ORIGINS = _env_list('CSRF_TRUSTED_ORIGINS', [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://kpissyteam.vercel.app",
 ])
 
 
@@ -201,11 +202,16 @@ CORS_ALLOW_HEADERS = [
 
 # Security for reverse proxy (Render)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
+# Production'da HTTPS ishlatiladi, shuning uchun Secure=True
+SESSION_COOKIE_SECURE = True  # Production'da har doim True
+CSRF_COOKIE_SECURE = True  # Production'da har doim True
 # Cross-origin cookie'lar uchun (Vercel frontend + Render backend)
-SESSION_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
-CSRF_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
+# SameSite=None faqat Secure=True bilan ishlaydi
+SESSION_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SAMESITE = 'None'
+# Cookie domain - bo'sh qoldirish, har bir domain o'z cookie'sini oladi
+SESSION_COOKIE_DOMAIN = None
+CSRF_COOKIE_DOMAIN = None
 
 ENABLE_SSL_REDIRECT = os.environ.get('ENABLE_SSL_REDIRECT', 'False') == 'True'
 if ENABLE_SSL_REDIRECT:

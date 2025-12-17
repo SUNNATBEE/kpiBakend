@@ -179,8 +179,25 @@ JAZZMIN_SETTINGS = {
 CORS_ALLOWED_ORIGINS = _env_list('CORS_ALLOWED_ORIGINS', [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://kpissyteam.vercel.app",
 ])
+# Agar CORS_ALLOWED_ORIGINS bo'sh bo'lsa, barcha origin'larni ruxsat qilish (faqat development uchun)
+if not CORS_ALLOWED_ORIGINS and DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # Security for reverse proxy (Render)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

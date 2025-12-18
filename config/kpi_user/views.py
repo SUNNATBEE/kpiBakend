@@ -118,6 +118,70 @@ def home_view(request):
 
 from django.views.decorators.csrf import csrf_exempt
 
+@custom_login_required
+def get_submissions_api(request):
+    """JSON formatida submission'larni qaytarish"""
+    selected_period = request.GET.get("period")
+    
+    # Period olish
+    if selected_period:
+        try:
+            period = Period.objects.filter(id=int(selected_period)).first()
+        except (ValueError, TypeError):
+            period = None
+    else:
+        today = timezone.now().date()
+        period = Period.objects.filter(
+            start_date__lte=today,
+            end_date__gte=today
+        ).first()
+    
+    # User olish
+    user = request.user
+    if not user.is_authenticated:
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user = User.objects.filter(is_active=True, is_manager=False).first()
+        if not user:
+            user = User.objects.first()
+    
+    if not user:
+        return JsonResponse({"success": False, "error": "Foydalanuvchi topilmadi"}, status=400)
+    
+    # Submission'larni olish
+    if period:
+        submissions = Submission.objects.filter(
+            period_id=period.pk,
+            user_id=user.pk
+        ).order_by('-created_day')
+    else:
+        submissions = Submission.objects.filter(
+            user_id=user.pk
+        ).order_by('-created_day')
+    
+    # JSON formatiga o'tkazish
+    submissions_data = []
+    for sub in submissions:
+        submissions_data.append({
+            'id': sub.id,
+            'title': f"{sub.criteria_item.criteria.item_num} | {sub.criteria_item.name}",
+            'status': sub.status,
+            'score': sub.score or 0,
+            'date': sub.created_day.strftime('%Y-%m-%d') if sub.created_day else '',
+            'period': period.name if period else '',
+            'description': sub.request_description or '',
+        })
+    
+    response = JsonResponse({
+        "success": True,
+        "data": submissions_data,
+        "period": period.name if period else None,
+        "period_id": period.id if period else None,
+    })
+    response['Access-Control-Allow-Credentials'] = 'true'
+    response['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+    return response
+
 @csrf_exempt
 @custom_login_required
 def save_submission(request):

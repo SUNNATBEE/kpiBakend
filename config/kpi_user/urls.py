@@ -6,4 +6,5 @@ urlpatterns = [
     path('', views.home_view, name='kpi_user_home'),
     path('save-submission/', views.save_submission, name='save_submission'),
     path('submissions_view/', views.submissions_view, name='submissions_view'),
+    path('get-submissions/', views.get_submissions_api, name='get_submissions_api'),
 ]

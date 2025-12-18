@@ -202,13 +202,22 @@ CORS_ALLOW_HEADERS = [
 
 # Security for reverse proxy (Render)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# Production'da HTTPS ishlatiladi, shuning uchun Secure=True
-SESSION_COOKIE_SECURE = True  # Production'da har doim True
-CSRF_COOKIE_SECURE = True  # Production'da har doim True
-# Cross-origin cookie'lar uchun (Vercel frontend + Render backend)
-# SameSite=None faqat Secure=True bilan ishlaydi
-SESSION_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_SAMESITE = 'None'
+
+# Cookie settings - localhost va production uchun
+# Localhost'da Secure=False, production'da Secure=True
+if DEBUG:
+    # Localhost (development) uchun
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SAMESITE = 'Lax'
+else:
+    # Production uchun
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = 'None'
+    CSRF_COOKIE_SAMESITE = 'None'
+
 # Cookie domain - bo'sh qoldirish, har bir domain o'z cookie'sini oladi
 SESSION_COOKIE_DOMAIN = None
 CSRF_COOKIE_DOMAIN = None

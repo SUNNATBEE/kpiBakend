@@ -116,6 +116,9 @@ def home_view(request):
 
     return render(request, 'kpi-user/index.html', context)
 
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
 @custom_login_required
 def save_submission(request):
     if request.method != 'POST':

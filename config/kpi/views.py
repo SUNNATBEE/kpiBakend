@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.conf import settings
 import zipfile
 import os
 from io import BytesIO
@@ -93,6 +94,8 @@ def login_func(request):
                 pass
         
         if user is not None:
+            # Session'ni saqlash (login() dan oldin)
+            request.session.save()
             login(request, user)
             
             # JSON so'rov uchun JSON response
@@ -105,19 +108,26 @@ def login_func(request):
                 # Cookie'lar to'g'ri saqlanishini ta'minlash
                 # Django login() funksiyasi allaqachon session cookie'ni o'rnatadi
                 # Lekin cross-origin uchun qo'lda o'rnatamiz
-                if request.session.session_key:
+                session_key = request.session.session_key
+                if session_key:
+                    # Session cookie'ni qo'lda o'rnatish
                     response.set_cookie(
                         'sessionid',
-                        request.session.session_key,
+                        session_key,
                         max_age=60 * 60 * 24 * 7,  # 7 kun
                         httponly=True,
                         samesite='None',
                         secure=True,
                         path='/',
+                        domain=None,  # Domain bo'sh, har bir domain o'z cookie'sini oladi
                     )
-                # CORS headers qo'shish
+                # CORS headers qo'shish (CORS middleware bilan conflict qilmasligi uchun)
+                origin = request.headers.get('Origin')
+                if origin and origin in settings.CORS_ALLOWED_ORIGINS:
+                    response['Access-Control-Allow-Origin'] = origin
+                else:
+                    response['Access-Control-Allow-Origin'] = 'https://kpissyteam.vercel.app'
                 response['Access-Control-Allow-Credentials'] = 'true'
-                response['Access-Control-Allow-Origin'] = request.headers.get('Origin', 'https://kpissyteam.vercel.app')
                 return response
             
             # HTML so'rov uchun redirect

@@ -173,9 +173,9 @@ def save_submission(request):
     
     obj.save()
 
-    # JSON so'rov uchun JSON response
-    if request.headers.get('Content-Type', '').startswith('application/json') or \
-       request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({"success": True, "message": "Dalil muvaffaqiyatli yuklandi"})
-    
-    return redirect('submissions_view')
+    # Har doim JSON response qaytaramiz (frontend uchun)
+    response = JsonResponse({"success": True, "message": "Dalil muvaffaqiyatli yuklandi"})
+    # CORS headers qo'shamiz
+    response['Access-Control-Allow-Credentials'] = 'true'
+    response['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+    return response

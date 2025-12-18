@@ -104,8 +104,20 @@ def login_func(request):
                 })
                 # Cookie'lar to'g'ri saqlanishini ta'minlash
                 # Django login() funksiyasi allaqachon session cookie'ni o'rnatadi
-                # CORS uchun cookie sozlamalari settings.py'da allaqachon sozlangan
-                # Response'da cookie'lar avtomatik qo'shiladi
+                # Lekin cross-origin uchun qo'lda o'rnatamiz
+                if request.session.session_key:
+                    response.set_cookie(
+                        'sessionid',
+                        request.session.session_key,
+                        max_age=60 * 60 * 24 * 7,  # 7 kun
+                        httponly=True,
+                        samesite='None',
+                        secure=True,
+                        path='/',
+                    )
+                # CORS headers qo'shish
+                response['Access-Control-Allow-Credentials'] = 'true'
+                response['Access-Control-Allow-Origin'] = request.headers.get('Origin', 'https://kpissyteam.vercel.app')
                 return response
             
             # HTML so'rov uchun redirect
@@ -146,7 +158,11 @@ def csrf_token(request):
         httponly=False,  # JavaScript o'qishi uchun
         samesite='None',
         secure=True,
+        path='/',
     )
+    # CORS headers
+    response['Access-Control-Allow-Credentials'] = 'true'
+    response['Access-Control-Allow-Origin'] = request.headers.get('Origin', 'https://kpissyteam.vercel.app')
     return response
 
 
@@ -155,8 +171,10 @@ def check_auth(request):
     # Frontend'dan authentication holatini tekshirish uchun endpoint
     # request.user.is_authenticated Django'ning built-in metodidir
     try:
+        # CORS headers qo'shish
+        response = None
         if hasattr(request, 'user') and request.user.is_authenticated:
-            return JsonResponse({
+            response = JsonResponse({
                 "authenticated": True,
                 "username": request.user.username,
                 "is_superuser": getattr(request.user, 'is_superuser', False),
@@ -164,13 +182,22 @@ def check_auth(request):
             })
         else:
             # Authenticated emas
-            return JsonResponse({"authenticated": False}, status=401)
+            response = JsonResponse({"authenticated": False}, status=401)
+        
+        # CORS headers
+        if response:
+            response['Access-Control-Allow-Credentials'] = 'true'
+            response['Access-Control-Allow-Origin'] = request.headers.get('Origin', 'https://kpissyteam.vercel.app')
+        return response
     except Exception as e:
         # Xatolik bo'lsa, log qilamiz va 401 qaytaramiz
         import logging
         logger = logging.getLogger(__name__)
         logger.error(f"check_auth xatolik: {str(e)}")
-        return JsonResponse({"authenticated": False, "error": str(e)}, status=401)
+        response = JsonResponse({"authenticated": False, "error": str(e)}, status=401)
+        response['Access-Control-Allow-Credentials'] = 'true'
+        response['Access-Control-Allow-Origin'] = request.headers.get('Origin', 'https://kpissyteam.vercel.app')
+        return response
 
 
 @ensure_csrf_cookie

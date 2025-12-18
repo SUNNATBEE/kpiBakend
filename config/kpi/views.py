@@ -154,16 +154,23 @@ def csrf_token(request):
 def check_auth(request):
     # Frontend'dan authentication holatini tekshirish uchun endpoint
     # request.user.is_authenticated Django'ning built-in metodidir
-    if hasattr(request, 'user') and request.user.is_authenticated:
-        return JsonResponse({
-            "authenticated": True,
-            "username": request.user.username,
-            "is_superuser": getattr(request.user, 'is_superuser', False),
-            "is_manager": getattr(request.user, 'is_manager', False),
-        })
-    else:
-        # Authenticated emas
-        return JsonResponse({"authenticated": False}, status=401)
+    try:
+        if hasattr(request, 'user') and request.user.is_authenticated:
+            return JsonResponse({
+                "authenticated": True,
+                "username": request.user.username,
+                "is_superuser": getattr(request.user, 'is_superuser', False),
+                "is_manager": getattr(request.user, 'is_manager', False),
+            })
+        else:
+            # Authenticated emas
+            return JsonResponse({"authenticated": False}, status=401)
+    except Exception as e:
+        # Xatolik bo'lsa, log qilamiz va 401 qaytaramiz
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"check_auth xatolik: {str(e)}")
+        return JsonResponse({"authenticated": False, "error": str(e)}, status=401)
 
 
 @ensure_csrf_cookie

@@ -212,6 +212,9 @@ CSRF_COOKIE_SAMESITE = 'None'
 # Cookie domain - bo'sh qoldirish, har bir domain o'z cookie'sini oladi
 SESSION_COOKIE_DOMAIN = None
 CSRF_COOKIE_DOMAIN = None
+# Cookie path - barcha path'lar uchun
+SESSION_COOKIE_PATH = '/'
+CSRF_COOKIE_PATH = '/'
 
 ENABLE_SSL_REDIRECT = os.environ.get('ENABLE_SSL_REDIRECT', 'False') == 'True'
 if ENABLE_SSL_REDIRECT:

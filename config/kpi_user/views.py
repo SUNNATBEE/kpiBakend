@@ -111,7 +111,18 @@ def save_submission(request):
     date = request.POST.get('date')
     description = request.POST.get('description')
     file = request.FILES.get('file')
+    
+    # User olish (agar authenticated bo'lmasa, default user)
     user = request.user
+    if not user.is_authenticated:
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        try:
+            user = User.objects.filter(is_active=True, is_manager=False).first()
+            if not user:
+                return JsonResponse({"success": False, "error": "Foydalanuvchi topilmadi"}, status=400)
+        except Exception:
+            return JsonResponse({"success": False, "error": "Foydalanuvchi topilmadi"}, status=400)
     
     # Date tekshirish
     if not date:

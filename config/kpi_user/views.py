@@ -21,9 +21,21 @@ def submissions_view(request):
             end_date__gte=today
         ).first()
 
+    # User olish
+    user = request.user
+    if not user.is_authenticated:
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user = User.objects.filter(is_active=True, is_manager=False).first()
+        if not user:
+            user = User.objects.first()  # Agar hech kim bo'lmasa, birinchi userni olamiz
+
     context = {
         'periods': Period.objects.all(),
-        'data': Submission.objects.filter(period_id=period.pk, user_id=request.user.pk).order_by('-created_day'),
+        'data': Submission.objects.filter(
+            period_id=period.pk if period else None,
+            user_id=user.pk if user else None
+        ).order_by('-created_day') if period and user else [],
         'selected_period': period,
         'criteria_items': CriteriaItem.objects.all(),
     }
@@ -42,6 +54,15 @@ def home_view(request):
             end_date__gte=today
         ).first()
     
+    # User olish
+    user = request.user
+    if not user.is_authenticated:
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user = User.objects.filter(is_active=True, is_manager=False).first()
+        if not user:
+            user = User.objects.first()  # Agar hech kim bo'lmasa, birinchi userni olamiz
+    
     periods = Period.objects.all()
 
     criteria_type_list = []
@@ -51,13 +72,20 @@ def home_view(request):
         score = 0
         for crit in Criteria.objects.filter(criteria_type_id=c_type.pk):
             # Shu kriteriya bo‘yicha ball
-            submissions = Submission.objects.filter(
-                criteria_item__criteria=crit,
-                status=Submission.APPROVED,
-                created_day__lte=period.end_date,
-                created_day__gte=period.start_date,
-                user_id=request.user.id
-            )
+            if period:
+                submissions = Submission.objects.filter(
+                    criteria_item__criteria=crit,
+                    status=Submission.APPROVED,
+                    created_day__lte=period.end_date,
+                    created_day__gte=period.start_date,
+                    user_id=user.id if user else None
+                )
+            else:
+                submissions = Submission.objects.filter(
+                    criteria_item__criteria=crit,
+                    status=Submission.APPROVED,
+                    user_id=user.id if user else None
+                )
             total_score = submissions.aggregate(sum=Sum("score"))['sum'] or 0
 
             criteria_list.append({
